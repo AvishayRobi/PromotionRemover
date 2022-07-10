@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Xml.Linq;
+using PromotionRemover.Files;
 
 namespace PromotionRemover.XML
 {
@@ -41,7 +41,7 @@ namespace PromotionRemover.XML
 
     private string getFileContent()
       =>
-      FileManager.GetFileText(this.fullPath);
+      FileManager.GetFileContent(this.fullPath);
 
     private IEnumerable<XElement> getPromotions(XDocument xml)
       =>
