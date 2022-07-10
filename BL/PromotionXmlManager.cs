@@ -41,10 +41,8 @@ namespace PromotionRemover.BL
 
     public void SaveXml()
       =>
-      new XmlSaver()
-      .SetFullPath(this.xmlInfo.SaveFullPath)
+      new XmlSaver(this.xmlInfo)
       .SetXmlContent(this.parsedXml)
-      .ApplyCustomNamespace(this.xmlInfo.Namespace)
       .ApplyCustomRootTag()
       .Save();
 
