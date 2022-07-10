@@ -1,3 +1,4 @@
+using PromotionRemover.Model;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -9,17 +10,15 @@ namespace PromotionRemover.XML
     #region Data Members
     private IEnumerable<XElement> xml { get; set; }
     private XElement xmlWithRootTag { get; set; }
-    private string fullPathToSave { get; set; }
-    private XNamespace nameSpace { get; set; }
+    private XmlInfo xmlInfo { get; }
     #endregion
 
     #region Ctor
-    public XmlSaver()
+    public XmlSaver(XmlInfo xmlInfo)
     {
       this.xmlWithRootTag = new XElement("Root");
       this.xml = Enumerable.Empty<XElement>();
-      this.fullPathToSave = string.Empty;
-      this.nameSpace = string.Empty;
+      this.xmlInfo = xmlInfo;
     }
     #endregion
 
@@ -30,23 +29,10 @@ namespace PromotionRemover.XML
       return this;
     }
 
-    public XmlSaver SetFullPath(string fullPath)
-    {
-      this.fullPathToSave = fullPath;
-
-      return this;
-    }
-
-    public XmlSaver ApplyCustomNamespace(string nameSpace)
-    {
-      this.nameSpace = nameSpace;
-
-      return this;
-    }
-
     public XmlSaver ApplyCustomRootTag(string customRootTag = "promotions")
     {
-      this.xmlWithRootTag = new XElement(this.nameSpace + customRootTag, this.xml);
+      XNamespace ns = this.xmlInfo.Namespace;
+      this.xmlWithRootTag = new XElement(ns + customRootTag, this.xml);
 
       return this;
     }
@@ -54,6 +40,6 @@ namespace PromotionRemover.XML
     public void Save()
       =>
       new XDocument(this.xmlWithRootTag)
-      .Save(this.fullPathToSave);
+      .Save(this.xmlInfo.SaveFullPath);
   }
 }
