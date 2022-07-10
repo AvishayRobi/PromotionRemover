@@ -1,45 +1,72 @@
-using PromotionRemover.Model;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using PromotionRemover.Model;
+using PromotionRemover.XML;
+using WallaShops.Utils;
 
-namespace PromotionRemover.XML
+namespace PromotionRemover.BL
 {
-  public class XmlSaver
+  public class PromotionXmlManager
   {
     #region Data Members
-    private IEnumerable<XElement> xml { get; set; }
-    private XElement xmlWithRootTag { get; set; }
+    private IEnumerable<XElement> parsedXml { get; set; }
+    private HashSet<string> promotionIds { get; set; }
     private XmlInfo xmlInfo { get; }
     #endregion
 
     #region Ctor
-    public XmlSaver(XmlInfo xmlInfo)
+    public PromotionXmlManager()
     {
-      this.xmlWithRootTag = new XElement("Root");
-      this.xml = Enumerable.Empty<XElement>();
-      this.xmlInfo = xmlInfo;
+      this.parsedXml = Enumerable.Empty<XElement>();
+      this.promotionIds = new HashSet<string>();
+      this.xmlInfo = getXmlInfo();
     }
     #endregion
 
-    public XmlSaver SetXmlContent(IEnumerable<XElement> xml)
+    public PromotionXmlManager SetPromotionIds(HashSet<string> promotionIds)
     {
-      this.xml = xml;
+      this.promotionIds = promotionIds;
 
       return this;
     }
 
-    public XmlSaver ApplyCustomRootTag(string customRootTag = "promotions")
+    public PromotionXmlManager ProcessXml()
     {
-      XNamespace ns = this.xmlInfo.Namespace;
-      this.xmlWithRootTag = new XElement(ns + customRootTag, this.xml);
+      IEnumerable<XElement> xml = getXml();
+      this.parsedXml = disableOfflinePromotions(xml);
 
       return this;
     }
 
-    public void Save()
+    public void SaveXml()
       =>
-      new XDocument(this.xmlWithRootTag)
-      .Save(this.xmlInfo.SaveFullPath);
+      new XmlSaver(this.xmlInfo)
+      .SetXmlContent(this.parsedXml)
+      .ApplyCustomRootTag()
+      .Save();
+
+    private IEnumerable<XElement> getXml()
+      =>
+      new XmlFetcher()
+      .SetFullPath(this.xmlInfo.FetchFullPath)
+      .GetPromotionsXml();
+
+    private IEnumerable<XElement> disableOfflinePromotions(IEnumerable<XElement> xml)
+      =>
+      new XmlParser()
+      .SetPromotionIds(this.promotionIds)
+      .SetXml(xml)
+      .SetXmlNamespace(this.xmlInfo.Namespace)
+      .DisablePromotions();
+
+    private XmlInfo getXmlInfo()
+      =>
+      new XmlInfo()
+      {
+        FetchFullPath = WSGeneralUtils.GetAppSettings("XmlFullPath"),
+        SaveFullPath = WSGeneralUtils.GetAppSettings("SaveFullPath"),
+        Namespace = WSGeneralUtils.GetAppSettings("XmlNamespace")
+      };
   }
 }
