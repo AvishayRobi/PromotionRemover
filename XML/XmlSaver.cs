@@ -1,7 +1,7 @@
-using PromotionRemover.Model;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using PromotionRemover.Model;
 
 namespace PromotionRemover.XML
 {
